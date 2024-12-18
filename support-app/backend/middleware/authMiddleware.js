@@ -2,39 +2,41 @@ const jwt = require('jsonwebtoken')
 const asyncHandler = require('express-async-handler')
 const User = require('../models/userModel')
 
+// @desc    Protect routes by verifying JWT token
+// @route   Middleware
+// @access  Private
 const protect = asyncHandler(async (req, res, next) => {
-  let token
+  let token // Initialize variable to store the token
 
   if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
+    req.headers.authorization && // Checking if authorization header exists
+    req.headers.authorization.startsWith('Bearer') // Checking if the token starts with "Bearer"
   ) {
     try {
-      // Get token from header
+      // Getting token from header by splitting at space
       token = req.headers.authorization.split(' ')[1]
-      // Verify token
+      // Verifying token using the secret key from environment variables
       const decoded = jwt.verify(token, process.env.JWT_SECRET)
-      // Get user from token
-      req.user = await User.findById(decoded.id).select('-password')
-      // NOTE: We need to check if a user was found
-      // https://www.udemy.com/course/react-front-to-back-2022/learn/lecture/30591026#questions/17843570
-      if (!req.user) {
-        res.status(401)
-        throw new Error('Not authorized')
+      // Getting user from the decoded token (user ID)
+      req.user = await User.findById(decoded.id).select('-password') // Exclude password from the user object
+      if (!req.user) { // If no user is found
+        res.status(401) // Return 401 Unauthorized status
+        throw new Error('Not authorized') // Throw an error indicating user not authorized
       }
 
-      next()
+      next() // Proceed to the next middleware or route handler
     } catch (error) {
-      console.log(error)
-      res.status(401)
-      throw new Error('Not authorized')
+      console.log(error) // Log any error during token verification
+      res.status(401) // Return 401 Unauthorized status
+      throw new Error('Not authorized') // Throw error indicating not authorized
     }
   }
 
-  if (!token) {
-    res.status(401)
-    throw new Error('Not authorized')
+  if (!token) { // If no token is provided
+    res.status(401) // Return 401 Unauthorized status
+    throw new Error('Not authorized') // Throw error indicating not authorized
   }
 })
+
 
 module.exports = { protect }

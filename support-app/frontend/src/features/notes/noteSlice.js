@@ -1,65 +1,54 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import noteService from './noteService'
-// NOTE: use a extractErrorMessage function to save some repetition
-import { extractErrorMessage } from '../../utils'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit' // Import Redux Toolkit functions
+import noteService from './noteService' // Import note service functions
+import { extractErrorMessage } from '../../utils' // Import utility for error extraction
 
-// NOTE: removed isLoading, isSuccess, isError, message and reset
-// loading can be infered from presence or absence of notes
-// success can be infered from presence or absence of notes
-// error meassages can be recieved at component level from our AsyncThunkAction
-// reset was never actually used
-
+// Initial state for notes
 const initialState = {
-  notes: null,
+  notes: null, // Notes start as null (no data yet)
 }
 
-// Get ticket notes
+// Async thunk to fetch notes for a ticket
 export const getNotes = createAsyncThunk(
-  'notes/getAll',
+  'notes/getAll', // Action type
   async (ticketId, thunkAPI) => {
     try {
-      const token = thunkAPI.getState().auth.user.token
-      return await noteService.getNotes(ticketId, token)
+      const token = thunkAPI.getState().auth.user.token // Get token from state
+      return await noteService.getNotes(ticketId, token) // Call the noteService to fetch notes
     } catch (error) {
-      return thunkAPI.rejectWithValue(extractErrorMessage(error))
+      return thunkAPI.rejectWithValue(extractErrorMessage(error)) // Return error message on failure
     }
   }
 )
 
-// Create ticket note
+// Async thunk to create a new note
 export const createNote = createAsyncThunk(
-  'notes/create',
+  'notes/create', // Action type
   async ({ noteText, ticketId }, thunkAPI) => {
     try {
-      const token = thunkAPI.getState().auth.user.token
-      return await noteService.createNote(noteText, ticketId, token)
+      const token = thunkAPI.getState().auth.user.token // Get token from state
+      return await noteService.createNote(noteText, ticketId, token) // Call the noteService to create a note
     } catch (error) {
-      return thunkAPI.rejectWithValue(extractErrorMessage(error))
+      return thunkAPI.rejectWithValue(extractErrorMessage(error)) // Return error message on failure
     }
   }
 )
 
+// Note slice to manage state and reducers
 export const noteSlice = createSlice({
-  name: 'note',
-  initialState,
+  name: 'note', // Slice name
+  initialState, // Initial state
   extraReducers: (builder) => {
     builder
       .addCase(getNotes.pending, (state) => {
-        // NOTE: reset notes to null on pending so we can show a Spinner while
-        // fetching notes
-        state.notes = null
+        state.notes = null // Reset notes to null while fetching
       })
       .addCase(getNotes.fulfilled, (state, action) => {
-        // NOTE: even if there are no notes for the ticket we get an empty
-        // array, so we can use this to detect if we have notes or are fetching
-        // notes. Payload will be an array of notes or an empty array, either
-        // means we have finished fetching the notes.
-        state.notes = action.payload
+        state.notes = action.payload // Update state with fetched notes
       })
       .addCase(createNote.fulfilled, (state, action) => {
-        state.notes.push(action.payload)
+        state.notes.push(action.payload) // Add the new note to the notes array
       })
   },
 })
 
-export default noteSlice.reducer
+export default noteSlice.reducer // Export the reducer for the store

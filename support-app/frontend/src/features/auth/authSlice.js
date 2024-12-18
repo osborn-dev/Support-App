@@ -1,86 +1,74 @@
-import { createSlice, createAsyncThunk, createAction } from '@reduxjs/toolkit'
-import authService from './authService'
-// NOTE: use a extractErrorMessage function to save some repetition
-import { extractErrorMessage } from '../../utils'
+import { createSlice, createAsyncThunk, createAction } from '@reduxjs/toolkit' // Import functions from Redux Toolkit
+import authService from './authService' // Import the authentication service
 
-// Get user from localstorage
+import { extractErrorMessage } from '../../utils' // Import a utility to handle error messages
+
+// Retrieve the user from localStorage
 const user = JSON.parse(localStorage.getItem('user'))
 
-// NOTE: remove isSuccess from state as we can infer from
-// presence or absence of user
-// There is no need for a reset function as we can do this in our pending cases
-// No need for isError or message as we can catch the AsyncThunkAction rejection
-// in our component and we will have the error message there
 const initialState = {
-  user: user ? user : null,
-  isLoading: false,
+  user: user ? user : null, // Set user from localStorage if available, otherwise null
+  isLoading: false, // Default loading state is false
 }
 
-// Register new user
-export const register = createAsyncThunk(
-  'auth/register',
-  async (user, thunkAPI) => {
-    try {
-      return await authService.register(user)
-    } catch (error) {
-      return thunkAPI.rejectWithValue(extractErrorMessage(error))
-    }
+// Thunk for registering a new user
+export const register = createAsyncThunk('auth/register', async (user, thunkAPI) => {
+  try {
+    return await authService.register(user) // Call the register API
+  } catch (error) {
+    return thunkAPI.rejectWithValue(extractErrorMessage(error)) // Handle errors
   }
-)
+})
 
-// Login user
+// Thunk for logging in a user
 export const login = createAsyncThunk('auth/login', async (user, thunkAPI) => {
   try {
-    return await authService.login(user)
+    return await authService.login(user) // Call the login API
   } catch (error) {
-    return thunkAPI.rejectWithValue(extractErrorMessage(error))
+    return thunkAPI.rejectWithValue(extractErrorMessage(error)) // Handle errors
   }
 })
 
-// Logout user
-// NOTE: here we don't need a thunk as we are not doing anything async so we can
-// use a createAction instead
+// Action for logging out a user
 export const logout = createAction('auth/logout', () => {
-  authService.logout()
-  // return an empty object as our payload as we don't need a payload but the
-  // prepare function requires a payload return
-  return {}
+  authService.logout() // Clear user data via the service
+  return {} // No payload needed, return an empty object
 })
-
-// NOTE: in cases of login or register pending or rejected then user will
-// already be null so no need to set to null in these cases
 
 export const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
+    // Handle logout by clearing the user state
     logout: (state) => {
       state.user = null
     },
   },
   extraReducers: (builder) => {
     builder
+      // Registration actions
       .addCase(register.pending, (state) => {
-        state.isLoading = true
+        state.isLoading = true // Show loading during registration
       })
       .addCase(register.fulfilled, (state, action) => {
-        state.user = action.payload
-        state.isLoading = false
+        state.user = action.payload // Update user on successful registration
+        state.isLoading = false // Stop loading
       })
       .addCase(register.rejected, (state) => {
-        state.isLoading = false
+        state.isLoading = false // Stop loading on registration failure
       })
+      // Login actions
       .addCase(login.pending, (state) => {
-        state.isLoading = false
+        state.isLoading = true // Show loading during login
       })
       .addCase(login.fulfilled, (state, action) => {
-        state.user = action.payload
-        state.isLoading = false
+        state.user = action.payload // Update user on successful login
+        state.isLoading = false // Stop loading
       })
       .addCase(login.rejected, (state) => {
-        state.isLoading = false
+        state.isLoading = false // Stop loading on login failure
       })
   },
 })
 
-export default authSlice.reducer
+export default authSlice.reducer // Export the reducer

@@ -6,40 +6,36 @@ import BackButton from '../components/BackButton'
 import TicketItem from '../components/TicketItem'
 
 function Tickets() {
-  const { tickets } = useSelector((state) => state.tickets)
+  const { tickets } = useSelector((state) => state.tickets) // Accessing tickets from Redux state
 
-  const dispatch = useDispatch()
-
-  // NOTE: only need one useEffect here
+  const dispatch = useDispatch() // Hook to dispatch actions to Redux store
 
   useEffect(() => {
-    dispatch(getTickets())
-  }, [dispatch])
+    dispatch(getTickets()) // Dispatch action to fetch tickets when the component mounts
+  }, [dispatch]) // Re-run effect when dispatch changes (this ensures the effect runs only once)
 
-  // NOTE: no need for loading state, we can check for absence of tickets
-  // If we don't have tickets we are loading, if we do have tickets we just
-  // need to update the tickets with latest tickets in the background
   if (!tickets) {
-    return <Spinner />
+    return <Spinner /> // Show a loading spinner if tickets data is not yet available
   }
 
   return (
     <>
-      <BackButton />
-      <h1>Tickets</h1>
-      <div className='tickets'>
-        <div className='ticket-headings'>
-          <div>Date</div>
-          <div>Product</div>
-          <div>Status</div>
-          <div></div>
+      <BackButton /> 
+      <h1>Tickets</h1> 
+      <div className='tickets'> 
+        <div className='ticket-headings'> 
+          <div>Date</div> 
+          <div>Product</div> 
+          <div>Status</div> 
+          <div></div> 
         </div>
-        {tickets.map((ticket) => (
-          <TicketItem key={ticket._id} ticket={ticket} />
+        {tickets.map((ticket) => ( // Mapping through tickets to render each ticket item
+          <TicketItem key={ticket._id} ticket={ticket} /> // Render each ticket item, passing ticket as a prop
         ))}
       </div>
     </>
   )
 }
+
 
 export default Tickets

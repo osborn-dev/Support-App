@@ -24,59 +24,54 @@ const customStyles = {
 }
 
 Modal.setAppElement('#root')
-
 function Ticket() {
-  const [modalIsOpen, setModalIsOpen] = useState(false)
-  const [noteText, setNoteText] = useState('')
-  const { ticket } = useSelector((state) => state.tickets)
+  const [modalIsOpen, setModalIsOpen] = useState(false) // State to manage modal visibility
+  const [noteText, setNoteText] = useState('') // State to manage note text input
+  const { ticket } = useSelector((state) => state.tickets) // Getting ticket data from Redux state
 
-  const { notes } = useSelector((state) => state.notes)
+  const { notes } = useSelector((state) => state.notes) // Getting notes data from Redux state
 
-  // NOTE: no need for two useParams
-  // const params = useParams()
-  const navigate = useNavigate()
-  const dispatch = useDispatch()
-  const { ticketId } = useParams()
+  const navigate = useNavigate() // Hook to navigate between routes
+  const dispatch = useDispatch() // Hook to dispatch actions to Redux store
+  const { ticketId } = useParams() // Extract ticketId from the route parameters
 
   useEffect(() => {
-    dispatch(getTicket(ticketId)).unwrap().catch(toast.error)
-    dispatch(getNotes(ticketId)).unwrap().catch(toast.error)
-  }, [ticketId, dispatch])
+    dispatch(getTicket(ticketId)).unwrap().catch(toast.error) // Dispatch action to fetch ticket data
+    dispatch(getNotes(ticketId)).unwrap().catch(toast.error) // Dispatch action to fetch ticket notes
+  }, [ticketId, dispatch]) // Re-run effect when ticketId or dispatch changes
 
   // Close ticket
   const onTicketClose = () => {
-    // NOTE: we can unwrap our AsyncThunkACtion here so no need for isError and
-    // isSuccess state
-    dispatch(closeTicket(ticketId))
-      .unwrap()
+    dispatch(closeTicket(ticketId)) // Dispatch action to close the ticket
+      .unwrap() 
       .then(() => {
-        toast.success('Ticket Closed')
-        navigate('/tickets')
+        toast.success('Ticket Closed') 
+        navigate('/tickets') // Redirect to tickets page
       })
-      .catch(toast.error)
+      .catch(toast.error) // Show error message if closing ticket fails
   }
 
   // Create note submit
   const onNoteSubmit = (e) => {
-    // NOTE: we can unwrap our AsyncThunkACtion here so no need for isError and
-    // isSuccess state
+    
     e.preventDefault()
-    dispatch(createNote({ noteText, ticketId }))
-      .unwrap()
+    dispatch(createNote({ noteText, ticketId })) // Dispatch action to create a new note for the ticket
+      .unwrap() // Unwrap the result of the action
       .then(() => {
-        setNoteText('')
-        closeModal()
+        setNoteText('') // Clear the note text after submission
+        closeModal() // Close the modal after submitting the note
       })
-      .catch(toast.error)
+      .catch(toast.error) // Show error message if note creation fails
   }
 
   // Open/close modal
-  const openModal = () => setModalIsOpen(true)
-  const closeModal = () => setModalIsOpen(false)
+  const openModal = () => setModalIsOpen(true) 
+  const closeModal = () => setModalIsOpen(false) 
 
   if (!ticket) {
-    return <Spinner />
+    return <Spinner /> // Show a loading spinner if the ticket data is not yet available
   }
+
 
   return (
     <div className='ticket-page'>
